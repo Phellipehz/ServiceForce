@@ -1,56 +1,41 @@
 package com.serviceforce.view
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import com.serviceforce.R
 import com.serviceforce.viewmodel.AuthenticationViewModel
 import com.serviceforce.viewmodel.MessageViewModel
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var authenticationViewModel : AuthenticationViewModel
-    lateinit var messageViewModel: MessageViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         authenticationViewModel = ViewModelProvider(this).get(AuthenticationViewModel::class.java)
-        messageViewModel =  ViewModelProvider(this).get(MessageViewModel::class.java)
-        setViewModelObservables()
-
-        authenticationViewModel.authenticate("mail@mail.com", "mail123")
-    }
-
-    fun setViewModelObservables(){
-        //viewLifecycleOwner
-        authenticationViewModel.authResultMutableLiveData.observe(this, Observer { result ->
+        authenticationViewModel.isAuthenticated()
+        authenticationViewModel.authenticatedResultMutableLiveData.observe(this, Observer { result ->
             if(result.isSuccess){
-                hello.text = "Email: ${result.getOrNull()?.user?.email} UID: ${result.getOrNull()?.user?.uid}"
-                Log.i("", "Email: ${result.getOrNull()?.user?.email}")
-                sendAndWatchMessage()
+                if(result.getOrNull()!!){
+                    startActivity(Intent(this, LoginActivity::class.java))
+                }else{
+                    startActivity(Intent(this, ServiceOrderListActivity::class.java))
+                }
             } else if (result.isFailure){
-                Log.e("", result.exceptionOrNull().toString())
+                Snackbar.make(loginButton, "Problema ao logar, tente mais tarde", Snackbar.LENGTH_INDEFINITE).show()
             }
         })
 
-        messageViewModel.messageMutableLiveData.observe(this, Observer { result ->
-            if(result.isSuccess){
-                Log.i("", result.getOrNull().toString())
-            } else if (result.isFailure){
-                Log.e("", result.exceptionOrNull().toString())
-            }
-        })
     }
-
-    fun sendAndWatchMessage(){
-        messageViewModel.sendMessage("Mensagem 1", "USERIDDESTINATION")
-        messageViewModel.watchMessage("USERIDDESTINATION")
-    }
-
 
 }

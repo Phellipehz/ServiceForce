@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.serviceforce.ServiceForceApplication
 import com.serviceforce.models.Device
 import com.serviceforce.repository.AuthenticationRepository
@@ -23,11 +24,14 @@ class AuthenticationViewModel : ViewModel() {
 
     val dataStore: DataStore<Preferences> = ServiceForceApplication.context.createDataStore("service-force");
 
+    val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+
     val authenticationRepository = AuthenticationRepository()
     val userRepository = UserRepository()
     val deviceRepository = DeviceRepository()
 
     val authResultMutableLiveData = MutableLiveData<Result<AuthResult>>()
+    val authenticatedResultMutableLiveData = MutableLiveData<Result<Boolean>>()
 
     fun authenticate(email: String, password: String){
         viewModelScope.launch {
@@ -48,6 +52,10 @@ class AuthenticationViewModel : ViewModel() {
                 authResultMutableLiveData.value = Result.failure(error)
             }
         }
+    }
+
+    fun isAuthenticated(){
+        authenticatedResultMutableLiveData.value = Result.success(firebaseAuth.currentUser != null)
     }
 
 }

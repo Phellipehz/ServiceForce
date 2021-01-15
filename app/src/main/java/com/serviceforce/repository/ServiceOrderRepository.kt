@@ -40,4 +40,12 @@ class ServiceOrderRepository {
         }
     }
 
+    suspend fun view(serviceOrderCode: String, businessCode: String): ServiceOrder? {
+        return suspendCoroutine { continuation ->
+            firestore.collection("businesses").document(businessCode).collection("orders").document(serviceOrderCode).get()
+                .addOnSuccessListener { documentoSnapshot -> continuation.resume(documentoSnapshot.toObject<ServiceOrder>()) }
+                .addOnFailureListener { exception -> continuation.resumeWithException(exception) }
+        }
+    }
+
 }
