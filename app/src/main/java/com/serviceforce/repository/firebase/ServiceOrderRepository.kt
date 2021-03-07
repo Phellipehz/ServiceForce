@@ -1,9 +1,12 @@
-package com.serviceforce.repository
+package com.serviceforce.repository.firebase
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
+import com.serviceforce.models.Message
 import com.serviceforce.models.ServiceOrder
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -30,6 +33,19 @@ class ServiceOrderRepository {
                 .addOnSuccessListener { querySnapshot -> continuation.resume(querySnapshot.toObjects()) }
                 .addOnFailureListener { exception -> continuation.resumeWithException(exception) }
         }
+    }
+
+    fun watchAll(businessCode: String) = callbackFlow<MutableList<ServiceOrder>> {
+        var query = firestore.collection("businesses").document(businessCode).collection("orders")
+        var subscription = query.addSnapshotListener { value, error ->
+            if(error != null){
+                if(!this.isClosedForSend) close(error)
+            }else{
+                if(!this.isClosedForSend) offer(value?.toObjects(ServiceOrder::class.java)!!)
+            }
+        }
+
+        awaitClose { subscription.remove() }
     }
 
     suspend fun update(businessCode: String): List<ServiceOrder>? {

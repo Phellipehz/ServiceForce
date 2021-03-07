@@ -14,18 +14,16 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.serviceforce.ServiceForceApplication
 import com.serviceforce.models.Device
-import com.serviceforce.repository.AuthenticationRepository
-import com.serviceforce.repository.DeviceRepository
-import com.serviceforce.repository.UserRepository
+import com.serviceforce.repository.firebase.AuthenticationRepository
+import com.serviceforce.repository.firebase.DeviceRepository
+import com.serviceforce.repository.firebase.UserRepository
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
 class AuthenticationViewModel : ViewModel() {
 
     val dataStore: DataStore<Preferences> = ServiceForceApplication.context.createDataStore("service-force");
-
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
-
     val authenticationRepository = AuthenticationRepository()
     val userRepository = UserRepository()
     val deviceRepository = DeviceRepository()
@@ -37,14 +35,13 @@ class AuthenticationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 var androidID = Settings.Secure.getString(ServiceForceApplication.context.contentResolver, Settings.Secure.ANDROID_ID);
-
                 var authenticationResult = authenticationRepository.authenticate(email, password)
                 var user = userRepository.find(authenticationResult.user!!.uid)
                 var device = deviceRepository.createUpdate(Device(androidID, Timestamp.now(), user!!.businessCode))
 
                 val prefsKeys = preferencesKey<String>("businessCode")
                 dataStore.edit { settings ->
-                    settings[prefsKeys] = user!!.businessCode
+                    settings[prefsKeys] = user.businessCode
                 }
 
                 authResultMutableLiveData.value = Result.success(authenticationResult)
@@ -55,6 +52,12 @@ class AuthenticationViewModel : ViewModel() {
     }
 
     fun isAuthenticated(){
+        /*
+         val prefsKeys = preferencesKey<String>("businessCode")
+                dataStore.edit { settings ->
+                    settings[prefsKeys] = user!!.businessCode
+                }
+        */
         authenticatedResultMutableLiveData.value = Result.success(firebaseAuth.currentUser != null)
     }
 

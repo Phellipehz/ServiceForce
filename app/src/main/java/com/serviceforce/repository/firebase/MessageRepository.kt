@@ -1,8 +1,7 @@
-package com.serviceforce.repository
+package com.serviceforce.repository.firebase
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.serviceforce.models.Message
-import com.serviceforce.models.User
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlin.coroutines.resume

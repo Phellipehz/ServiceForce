@@ -1,4 +1,4 @@
-package com.serviceforce.repository
+package com.serviceforce.repository.firebase
 
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth

@@ -1,4 +1,4 @@
-package com.serviceforce.repository
+package com.serviceforce.repository.firebase
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
